@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: marketplace
+  datasource:
+    # Use standard PostgreSQL configuration
+    url: jdbc:postgresql://localhost:5432/freelance_db
+    username: postgres
+    # Default password. The user can change this based on their local config.
+    password: password
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      # Automatically validate or update DB schema. Safe for development.
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8080
+  
+# Application specific configurations (JWT, etc.)
+app:
+  jwt:
+    # This must be a very long, base64 encoded strong random secret in production
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expirationMs: 86400000 # 24 hours
