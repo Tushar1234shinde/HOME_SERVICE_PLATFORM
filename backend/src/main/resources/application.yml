@@ -6,7 +6,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/freelance_db
     username: postgres
     # Default password. The user can change this based on their local config.
-    password: password
+    password: postgres
     driver-class-name: org.postgresql.Driver
   
   jpa:
