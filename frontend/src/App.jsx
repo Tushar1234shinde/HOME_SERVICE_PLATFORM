@@ -3,21 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 
-// Placeholder Pages for Router Setup
-const Home = () => (
-  <div className="container animate-fade-in" style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
-    <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-      Find the perfect <span className="text-primary">freelance</span> services for your business
-    </h1>
-    <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>
-      Work with talented people at the most affordable price to get the most out of your time and cost.
-    </p>
-  </div>
-);
-const Login = () => <div className="container" style={{ padding: '2rem 1.5rem' }}><h2>Login Page</h2></div>;
-const Register = () => <div className="container" style={{ padding: '2rem 1.5rem' }}><h2>Register Page</h2></div>;
-const VendorDashboard = () => <div className="container" style={{ padding: '2rem 1.5rem' }}><h2>Vendor Dashboard</h2></div>;
-const ClientDashboard = () => <div className="container" style={{ padding: '2rem 1.5rem' }}><h2>Client Dashboard</h2></div>;
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+import VendorDashboard from './pages/VendorDashboard';
+import ClientDashboard from './pages/ClientDashboard';
 
 // Route guards
 const ProtectedRoute = ({ children, roleRequired }) => {
