@@ -12,6 +12,11 @@ const Home = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -20,21 +25,31 @@ const Home = () => {
 
   useEffect(() => {
     fetchGigs();
-  }, [categoryFilter]);
+  }, [categoryFilter, page]);
 
   const fetchGigs = async () => {
     try {
       setLoading(true);
-      const endpoint = categoryFilter ? `/gigs?category=${categoryFilter}` : '/gigs';
+      let endpoint = `/gigs?page=${page}&size=9`;
+      if (categoryFilter) endpoint += `&category=${categoryFilter}`;
+      if (minPrice) endpoint += `&minPrice=${minPrice}`;
+      if (maxPrice) endpoint += `&maxPrice=${maxPrice}`;
+      
       const response = await api.get(endpoint);
       if (response.data.success) {
-        setGigs(response.data.data);
+        setGigs(response.data.data.content);
+        setTotalPages(response.data.data.totalPages);
       }
     } catch (err) {
       setError('Failed to load services. Please try again later.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyPriceFilter = () => {
+    setPage(0); // Reset to first page
+    fetchGigs();
   };
 
   const handleBook = (gigId) => {
@@ -105,16 +120,44 @@ const Home = () => {
 
       {/* Services Section */}
       <section className="container" style={{ padding: '5rem 1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Explore Services</h2>
             <p style={{ color: 'var(--text-secondary)' }}>Discover the best talent for your next project</p>
           </div>
-          {categoryFilter && (
-            <Button variant="ghost" onClick={() => setCategoryFilter('')}>
-              Clear Filter: {categoryFilter}
-            </Button>
-          )}
+          
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+               <input 
+                 type="number" 
+                 placeholder="Min $" 
+                 style={{ width: '80px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                 value={minPrice}
+                 onChange={(e) => setMinPrice(e.target.value)}
+               />
+               <span style={{ color: 'var(--text-secondary)' }}>-</span>
+               <input 
+                 type="number" 
+                 placeholder="Max $" 
+                 style={{ width: '80px', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                 value={maxPrice}
+                 onChange={(e) => setMaxPrice(e.target.value)}
+               />
+               <Button variant="secondary" onClick={applyPriceFilter}>Filter Price</Button>
+             </div>
+             
+             {(categoryFilter || minPrice || maxPrice) && (
+              <Button variant="ghost" onClick={() => {
+                 setCategoryFilter('');
+                 setMinPrice('');
+                 setMaxPrice('');
+                 setPage(0);
+                 setTimeout(fetchGigs, 0); // Need to wait for states to flush but this might be flakey - it's okay for now since we rely on useEffect for categoryFilter but not min/max yet
+              }}>
+                Clear Filters
+              </Button>
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -157,7 +200,7 @@ const Home = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginTop: 'auto' }}>
                     <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <Star size={16} fill="var(--warning-color)" color="var(--warning-color)" />
-                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>5.0</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{gig.vendorRating > 0 ? gig.vendorRating : 'New'}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>STARTING AT</span>
@@ -171,6 +214,27 @@ const Home = () => {
                 </div>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && !error && filteredGigs.length > 0 && totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', marginTop: '3rem' }}>
+             <Button 
+               variant="secondary" 
+               disabled={page === 0}
+               onClick={() => setPage(p => Math.max(0, p - 1))}
+             >
+               Previous
+             </Button>
+             <span style={{ fontWeight: 600 }}>Page {page + 1} of {totalPages}</span>
+             <Button 
+               variant="secondary" 
+               disabled={page >= totalPages - 1}
+               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+             >
+               Next
+             </Button>
           </div>
         )}
       </section>

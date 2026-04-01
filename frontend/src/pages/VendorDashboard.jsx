@@ -36,10 +36,10 @@ const VendorDashboard = () => {
       }
       
       // Let's get gigs 
-      const gigsRes = await api.get('/gigs');
+      const gigsRes = await api.get('/gigs?size=100'); // Fetch more for vendor dashboard or implement explicit endpoint later
       if (gigsRes.data.success) {
         // Filter gigs for current vendor
-        setGigs(gigsRes.data.data.filter(g => g.vendorName === user.name));
+        setGigs(gigsRes.data.data.content.filter(g => g.vendorName === user.name));
       }
     } catch (error) {
       console.error("Failed to load dashboard data", error);

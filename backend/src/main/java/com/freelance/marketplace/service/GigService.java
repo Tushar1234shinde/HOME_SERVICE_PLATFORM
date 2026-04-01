@@ -10,9 +10,12 @@ import com.freelance.marketplace.repository.VendorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @Service
 @RequiredArgsConstructor
@@ -37,16 +40,9 @@ public class GigService {
         return GigResponse.fromEntity(savedGig);
     }
 
-    public List<GigResponse> getAllGigs() {
-        return gigRepository.findAll().stream()
-                .map(GigResponse::fromEntity)
-                .collect(Collectors.toList());
-    }
-
-    public List<GigResponse> getGigsByCategory(String category) {
-        return gigRepository.findByCategoryIgnoreCase(category).stream()
-                .map(GigResponse::fromEntity)
-                .collect(Collectors.toList());
+    public Page<GigResponse> getFilteredGigs(String category, BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+        Specification<ServiceGig> spec = com.freelance.marketplace.repository.GigSpecification.filterGigs(category, minPrice, maxPrice);
+        return gigRepository.findAll(spec, pageable).map(GigResponse::fromEntity);
     }
 
     public GigResponse getGigById(UUID id) {

@@ -14,6 +14,7 @@ public class GigResponse {
     private UUID id;
     private UUID vendorId;
     private String vendorName;
+    private BigDecimal vendorRating;
     private String title;
     private String description;
     private BigDecimal price;
@@ -25,6 +26,7 @@ public class GigResponse {
                 .id(gig.getId())
                 .vendorId(gig.getVendor().getId())
                 .vendorName(gig.getVendor().getUser().getName())
+                .vendorRating(gig.getVendor().getRating())
                 .title(gig.getTitle())
                 .description(gig.getDescription())
                 .price(gig.getPrice())
