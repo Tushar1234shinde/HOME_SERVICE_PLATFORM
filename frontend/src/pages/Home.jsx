@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { Search, MapPin, Star, Clock } from 'lucide-react';
+import Modal from '../components/Modal';
+import { Search, MapPin, Star, Clock, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
@@ -17,6 +18,12 @@ const Home = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+
+  // Reviews Modal State
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [vendorReviews, setVendorReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [selectedVendorName, setSelectedVendorName] = useState('');
 
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -64,6 +71,23 @@ const Home = () => {
       navigate('/client/dashboard', { state: { bookingGigId: gigId } });
     } else {
       alert("Only clients can book services!");
+    }
+  };
+
+  const handleFetchReviews = async (vendorId, vendorName) => {
+    setSelectedVendorName(vendorName);
+    setIsReviewsModalOpen(true);
+    setReviewsLoading(true);
+    try {
+      const response = await api.get(`/reviews/vendor/${vendorId}`);
+      if (response.data.success) {
+        setVendorReviews(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load reviews', err);
+      alert('Failed to load reviews.');
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -198,9 +222,14 @@ const Home = () => {
                   </p>
                   
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginTop: 'auto' }}>
-                    <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <div 
+                      style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}
+                      onClick={() => handleFetchReviews(gig.vendorId, gig.vendorName)}
+                      title="View Reviews"
+                    >
                       <Star size={16} fill="var(--warning-color)" color="var(--warning-color)" />
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{gig.vendorRating > 0 ? gig.vendorRating : 'New'}</span>
+                      <span style={{ fontSize: '0.75rem', marginLeft: '2px', textDecoration: 'underline' }}>(Reviews)</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>STARTING AT</span>
@@ -238,6 +267,46 @@ const Home = () => {
           </div>
         )}
       </section>
+
+      {/* Reviews Modal */}
+      <Modal isOpen={isReviewsModalOpen} onClose={() => setIsReviewsModalOpen(false)} title={`Reviews for ${selectedVendorName}`}>
+        <div style={{ padding: '1rem 0', maxHeight: '60vh', overflowY: 'auto' }}>
+          {reviewsLoading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>Loading reviews...</div>
+          ) : vendorReviews.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+              <MessageSquare size={48} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
+              <p>No reviews yet for this vendor.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {vendorReviews.map(review => (
+                <div key={review.id} style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 600 }}>{review.clientName}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star 
+                          key={star} 
+                          size={14} 
+                          fill={star <= review.rating ? "var(--warning-color)" : "transparent"} 
+                          color={star <= review.rating ? "var(--warning-color)" : "var(--border-color)"}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                    {review.comment || <i>No comment provided</i>}
+                  </p>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

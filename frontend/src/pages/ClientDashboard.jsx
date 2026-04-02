@@ -5,7 +5,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingBag, Lock, CheckCircle, Clock } from 'lucide-react';
+import { ShoppingBag, Lock, CheckCircle, Clock, Star } from 'lucide-react';
 
 const ClientDashboard = () => {
   const { user } = useAuth();
@@ -17,6 +17,12 @@ const ClientDashboard = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [targetGigId, setTargetGigId] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Review state
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewOrder, setReviewOrder] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
 
   useEffect(() => {
     fetchOrders();
@@ -82,6 +88,23 @@ const ClientDashboard = () => {
       alert("Funds released to vendor successfully.");
     } catch (error) {
       alert("Failed to release funds.");
+    }
+  };
+
+  const handleReviewSubmit = async () => {
+    setActionLoading(true);
+    try {
+      await api.post('/reviews', {
+        orderId: reviewOrder.id,
+        rating,
+        comment
+      });
+      alert("Review submitted successfully!");
+      setIsReviewModalOpen(false);
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to submit review.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -155,7 +178,12 @@ const ClientDashboard = () => {
                          Approve & Release Funds
                       </Button>
                     ) : (
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>Payment Released</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>Payment Released</span>
+                        <Button size="sm" variant="secondary" onClick={() => { setReviewOrder(order); setIsReviewModalOpen(true); setRating(5); setComment(''); }}>
+                           Leave Review
+                        </Button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -179,6 +207,44 @@ const ClientDashboard = () => {
              Confirm Payment & Hire
            </Button>
            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Mock integration. No real card charged.</p>
+        </div>
+      </Modal>
+
+      <Modal isOpen={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} title={`Review ${reviewOrder?.vendorName}`}>
+        <div style={{ padding: '1rem 0' }}>
+           <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+             <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>How was your experience with <strong>{reviewOrder?.serviceTitle}</strong>?</p>
+             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+               {[1, 2, 3, 4, 5].map((star) => (
+                 <Star 
+                   key={star} 
+                   size={32} 
+                   fill={star <= rating ? "var(--warning-color)" : "transparent"} 
+                   color={star <= rating ? "var(--warning-color)" : "var(--border-color)"}
+                   style={{ cursor: 'pointer' }}
+                   onClick={() => setRating(star)}
+                 />
+               ))}
+             </div>
+           </div>
+           
+           <div className="input-group">
+             <label>Comment (Optional)</label>
+             <textarea 
+               rows="4" 
+               className="input-field" 
+               value={comment} 
+               onChange={(e) => setComment(e.target.value)} 
+               placeholder="Share details about your experience..."
+               style={{ width: '100%', resize: 'vertical' }}
+             />
+           </div>
+           
+           <div style={{ marginTop: '2rem' }}>
+             <Button fullWidth onClick={handleReviewSubmit} isLoading={actionLoading}>
+               Submit Review
+             </Button>
+           </div>
         </div>
       </Modal>
     </div>

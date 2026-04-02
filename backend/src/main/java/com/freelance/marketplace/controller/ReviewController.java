@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -24,5 +27,10 @@ public class ReviewController {
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(@Valid @RequestBody ReviewRequest request) {
         ReviewResponse response = reviewService.openReview(request);
         return new ResponseEntity<>(ApiResponse.success(response, "Review submitted successfully!"), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/vendor/{vendorId}")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getVendorReviews(@PathVariable UUID vendorId) {
+        return ResponseEntity.ok(ApiResponse.success(reviewService.getVendorReviews(vendorId), "Reviews fetched successfully"));
     }
 }

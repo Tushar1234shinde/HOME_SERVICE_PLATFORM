@@ -62,4 +62,11 @@ public class ReviewService {
         vendor.setRating(BigDecimal.valueOf(average).setScale(2, RoundingMode.HALF_UP));
         vendorRepository.save(vendor);
     }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponse> getVendorReviews(java.util.UUID vendorId) {
+        return reviewRepository.findByVendorId(vendorId).stream()
+                .map(ReviewResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 }
