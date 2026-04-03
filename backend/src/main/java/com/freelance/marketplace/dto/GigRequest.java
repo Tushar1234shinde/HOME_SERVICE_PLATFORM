@@ -25,4 +25,6 @@ public class GigRequest {
 
     @NotBlank(message = "Category is required")
     private String category;
+
+    private String imageUrl;
 }

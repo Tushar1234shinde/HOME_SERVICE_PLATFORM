@@ -19,6 +19,7 @@ public class GigResponse {
     private String description;
     private BigDecimal price;
     private String category;
+    private String imageUrl;
     private LocalDateTime createdAt;
 
     public static GigResponse fromEntity(ServiceGig gig) {
@@ -31,6 +32,7 @@ public class GigResponse {
                 .description(gig.getDescription())
                 .price(gig.getPrice())
                 .category(gig.getCategory())
+                .imageUrl(gig.getImageUrl())
                 .createdAt(gig.getCreatedAt())
                 .build();
     }

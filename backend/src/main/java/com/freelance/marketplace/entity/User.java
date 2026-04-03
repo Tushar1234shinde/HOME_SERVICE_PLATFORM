@@ -35,6 +35,8 @@ public class User {
 
     @Column(nullable = false)
     private String status = "ACTIVE";
+    @Column
+    private String profileImageUrl;
 
     @CreationTimestamp
     @Column(updatable = false)

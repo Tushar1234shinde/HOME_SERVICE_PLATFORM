@@ -36,6 +36,8 @@ public class ServiceGig {
 
     @Column(nullable = false)
     private String category;
+    @Column
+    private String imageUrl;
 
     @CreationTimestamp
     @Column(updatable = false)

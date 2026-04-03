@@ -34,6 +34,7 @@ public class GigService {
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .category(request.getCategory())
+                .imageUrl(request.getImageUrl())
                 .build();
 
         ServiceGig savedGig = gigRepository.save(gig);
